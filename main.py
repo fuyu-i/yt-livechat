@@ -54,17 +54,33 @@ def fetch_live_chat(continuation_token):
     return response.json()
     
 
+def parse_message(message_runs):
+    parts = []
+    for run in message_runs:
+        if "text" in run:
+            parts.append(run["text"])
+        elif "emoji" in run:
+            emoji = run["emoji"]
+            if "shortcuts" in emoji and emoji["shortcuts"]:
+                parts.append(emoji["shortcuts"][0])
+            else:
+                parts.append(emoji["emoji"])
+        
+    return "".join(parts)
+
+
 def print_chat_messages(actions):
     for action in actions:
         try:
             msg = action["addChatItemAction"]["item"]["liveChatTextMessageRenderer"]
             author = msg["authorName"]["simpleText"]
-            message_text = msg["message"]["runs"]
-            message = "".join(run.get("text", "") for run in message_text)
+            message_runs = msg["message"]["runs"]
+            message = parse_message(message_runs)
 
             print(f"{author}: {message}")
         except KeyError:
             continue
+
 
 def stream_chat(continuation_token):
     while continuation_token:

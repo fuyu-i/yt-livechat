@@ -1,3 +1,5 @@
+import config
+
 import re
 import requests
 import json
@@ -29,7 +31,38 @@ def get_continuation(video_id):
 
     return continuation
 
+def fetch_live_chat(continuation_token):
+    url = "https://www.youtube.com/youtubei/v1/live_chat/get_live_chat"
 
-video_id = "szxssf"
-continuation = get_continuation(video_id)
-print(f"Continuation token: {continuation}")
+    headers = {
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "context": {
+            "client": {
+                "clientName": "WEB",
+                "clientVersion": "2.20250724.00.00"
+            }
+        },
+        "continuation": continuation_token
+    }
+
+    response = requests.post(url, json=payload, headers=headers)
+
+    return response.json()
+    
+
+if __name__ == "__main__":
+    video_id = config.video_id
+    continuation_token = get_continuation(video_id)
+    print(f"Continuation token for video {video_id}: {continuation_token}")
+    
+    while True:
+        try:
+            chat_data = fetch_live_chat(continuation_token)
+            print(chat_data)
+            time.sleep(5)
+        except Exception as e:
+            print(f"Error fetching live chat: {e}")
+            time.sleep(10)

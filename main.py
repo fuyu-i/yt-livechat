@@ -31,6 +31,7 @@ def get_continuation(video_id):
 
     return continuation
 
+
 def fetch_live_chat(continuation_token):
     url = "https://www.youtube.com/youtubei/v1/live_chat/get_live_chat"
 
@@ -53,16 +54,27 @@ def fetch_live_chat(continuation_token):
     return response.json()
     
 
+def print_chat_messages(actions):
+    for action in actions:
+        try:
+            msg = action["addChatItemAction"]["item"]["liveChatTextMessageRenderer"]
+            author = msg["authorName"]["simpleText"]
+            message_text = msg["message"]["runs"]
+            message = "".join(run.get("text", "") for run in message_text)
+
+            print(f"{author}: {message}")
+        except KeyError:
+            continue
+
+def stream_chat(continuation_token):
+    while continuation_token:
+        data = fetch_live_chat(continuation_token)
+
+        actions = data["continuationContents"]["liveChatContinuation"]["actions"]
+        print_chat_messages(actions)
+
+
 if __name__ == "__main__":
     video_id = config.video_id
-    continuation_token = get_continuation(video_id)
-    print(f"Continuation token for video {video_id}: {continuation_token}")
-    
-    while True:
-        try:
-            chat_data = fetch_live_chat(continuation_token)
-            print(chat_data)
-            time.sleep(5)
-        except Exception as e:
-            print(f"Error fetching live chat: {e}")
-            time.sleep(10)
+    continuation_token = get_continuation(config.video_id)
+    stream_chat(continuation_token)

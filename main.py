@@ -69,6 +69,15 @@ def parse_message(message_runs):
     return "".join(parts)
 
 
+def save_chat(author, message, path="test.jsonl"):
+    data = {
+        "author": author,
+        "message": message
+    }
+    with open(path, "a", encoding="utf-8") as f:
+        f.write(json.dumps(data, ensure_ascii=False) + "\n")
+
+
 def print_chat_messages(actions):
     for action in actions:
         try:
@@ -78,6 +87,7 @@ def print_chat_messages(actions):
             message = parse_message(message_runs)
 
             print(f"{author}: {message}")
+            save_chat(author, message)
         except KeyError:
             continue
 

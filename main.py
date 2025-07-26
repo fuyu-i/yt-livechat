@@ -6,6 +6,7 @@ import json
 import time
 import os
 from datetime import datetime
+from collections import deque
 
 def get_continuation(video_id):
     url = f"https://www.youtube.com/watch?v={video_id}"
@@ -90,18 +91,33 @@ def save_chat(author, message, path="test.jsonl"):
         f.write(json.dumps(data, ensure_ascii=False) + "\n")
 
 
-saved_ids = set()
+saved_ids = deque(maxlen=100)
+saved_ids_set = set()
+
+def is_duplicate(message_id):
+    if message_id in saved_ids_set:
+        return True
+    
+    if len(saved_ids) == saved_ids.maxlen:
+        oldest = saved_ids.popleft()
+        saved_ids_set.remove(oldest)
+
+    saved_ids.append(message_id)
+    saved_ids_set.add(message_id)
+
+    return False
+
+
 output_file = get_output_file(config.video_id)
 def print_chat_messages(actions):
-    global saved_ids
     for action in actions:
         try:
             item = action["addChatItemAction"]["item"]
             msg = item["liveChatTextMessageRenderer"]
             msg_id = msg.get("id")
-            if msg_id in saved_ids:
+
+            if is_duplicate(msg_id):
                 continue
-            saved_ids.add(msg_id)
 
             author = msg["authorName"]["simpleText"]
             message_runs = msg["message"]["runs"]

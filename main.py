@@ -77,7 +77,7 @@ def get_output_file(video_id, base_path="livechat"):
 
     date_str = datetime.now().strftime("%m%d%y")
 
-    filename = f"{date_str}.json"
+    filename = f"{date_str}.jsonl"
     return os.path.join(folder, filename)
 
 

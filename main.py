@@ -4,6 +4,8 @@ import re
 import requests
 import json
 import time
+import os
+from datetime import datetime
 
 def get_continuation(video_id):
     url = f"https://www.youtube.com/watch?v={video_id}"
@@ -69,6 +71,16 @@ def parse_message(message_runs):
     return "".join(parts)
 
 
+def get_output_file(video_id, base_path="livechat"):
+    folder = os.path.join(base_path, video_id)
+    os.makedirs(folder, exist_ok=True)
+
+    date_str = datetime.now().strftime("%m%d%y")
+
+    filename = f"{date_str}.json"
+    return os.path.join(folder, filename)
+
+
 def save_chat(author, message, path="test.jsonl"):
     data = {
         "author": author,
@@ -79,6 +91,7 @@ def save_chat(author, message, path="test.jsonl"):
 
 
 saved_ids = set()
+output_file = get_output_file(config.video_id)
 def print_chat_messages(actions):
     global saved_ids
     for action in actions:
@@ -95,7 +108,7 @@ def print_chat_messages(actions):
             message = parse_message(message_runs)
 
             print(f"{author}: {message}")
-            save_chat(author, message)
+            save_chat(author, message, path=output_file)
         except KeyError:
             continue
 

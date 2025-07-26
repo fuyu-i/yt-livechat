@@ -78,10 +78,18 @@ def save_chat(author, message, path="test.jsonl"):
         f.write(json.dumps(data, ensure_ascii=False) + "\n")
 
 
+saved_ids = set()
 def print_chat_messages(actions):
+    global saved_ids
     for action in actions:
         try:
-            msg = action["addChatItemAction"]["item"]["liveChatTextMessageRenderer"]
+            item = action["addChatItemAction"]["item"]
+            msg = item["liveChatTextMessageRenderer"]
+            msg_id = msg.get("id")
+            if msg_id in saved_ids:
+                continue
+            saved_ids.add(msg_id)
+
             author = msg["authorName"]["simpleText"]
             message_runs = msg["message"]["runs"]
             message = parse_message(message_runs)
